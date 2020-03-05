@@ -1,0 +1,654 @@
+acceptances.cmo : \
+    option.cmo \
+    lts.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    error.cmo \
+    col.cmo
+acceptances.cmx : \
+    option.cmx \
+    lts.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    error.cmx \
+    col.cmx
+bfs.cmo :
+bfs.cmx :
+builtins.cmo : \
+    v.cmo \
+    utils.cmo \
+    spec.cmo \
+    listSet.cmo \
+    error.cmo \
+    col.cmo
+builtins.cmx : \
+    v.cmx \
+    utils.cmx \
+    spec.cmx \
+    listSet.cmx \
+    error.cmx \
+    col.cmx
+builtinsCsp.cmo : \
+    t.cmo \
+    opCsp.cmo \
+    id.cmo \
+    builtins.cmo
+builtinsCsp.cmx : \
+    t.cmx \
+    opCsp.cmx \
+    id.cmx \
+    builtins.cmx
+c.cmo : \
+    v.cmo \
+    p.cmo \
+    idCol.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo
+c.cmx : \
+    v.cmx \
+    p.cmx \
+    idCol.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx
+cCol.cmo : \
+    c.cmo
+cCol.cmx : \
+    c.cmx
+check.cmo : \
+    v.cmo \
+    unfold.cmo \
+    type.cmo \
+    tCol.cmo \
+    s.cmo \
+    report.cmo \
+    refinement.cmo \
+    mdb.cmo \
+    lts.cmo \
+    idCol.cmo \
+    id.cmo \
+    event.cmo \
+    eval.cmo \
+    error.cmo \
+    e.cmo \
+    divergence.cmo \
+    det.cmo \
+    col.cmo \
+    c.cmo \
+    acceptances.cmo
+check.cmx : \
+    v.cmx \
+    unfold.cmx \
+    type.cmx \
+    tCol.cmx \
+    s.cmx \
+    report.cmx \
+    refinement.cmx \
+    mdb.cmx \
+    lts.cmx \
+    idCol.cmx \
+    id.cmx \
+    event.cmx \
+    eval.cmx \
+    error.cmx \
+    e.cmx \
+    divergence.cmx \
+    det.cmx \
+    col.cmx \
+    c.cmx \
+    acceptances.cmx
+col.cmo : \
+    error.cmo
+col.cmx : \
+    error.cmx
+command.cmo : \
+    v.cmo \
+    type.cmo \
+    tCol.cmo \
+    t.cmo \
+    s.cmo \
+    idCol.cmo \
+    eval.cmo \
+    error.cmo \
+    e.cmo
+command.cmx : \
+    v.cmx \
+    type.cmx \
+    tCol.cmx \
+    t.cmx \
+    s.cmx \
+    idCol.cmx \
+    eval.cmx \
+    error.cmx \
+    e.cmx
+dependency.cmo : \
+    scc.cmo \
+    s.cmo \
+    option.cmo \
+    idCol.cmo \
+    id.cmo \
+    col.cmo
+dependency.cmx : \
+    scc.cmx \
+    s.cmx \
+    option.cmx \
+    idCol.cmx \
+    id.cmx \
+    col.cmx
+det.cmo : \
+    unfold.cmo \
+    option.cmo \
+    lts.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    error.cmo \
+    col.cmo \
+    bfs.cmo
+det.cmx : \
+    unfold.cmx \
+    option.cmx \
+    lts.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    error.cmx \
+    col.cmx \
+    bfs.cmx
+divergence.cmo : \
+    option.cmo \
+    lts.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    error.cmo \
+    col.cmo \
+    cCol.cmo \
+    c.cmo \
+    bfs.cmo
+divergence.cmx : \
+    option.cmx \
+    lts.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    error.cmx \
+    col.cmx \
+    cCol.cmx \
+    c.cmx \
+    bfs.cmx
+drive.cmo : \
+    viz.cmo \
+    unfold.cmo \
+    type.cmo \
+    spec.cmo \
+    s.cmo \
+    parserCsp.cmo \
+    option.cmo \
+    mdb.cmo \
+    lts.cmo \
+    idCol.cmo \
+    id.cmo \
+    event.cmo \
+    error.cmo \
+    dependency.cmo \
+    command.cmo \
+    check.cmo \
+    cCol.cmo \
+    builtinsCsp.cmo
+drive.cmx : \
+    viz.cmx \
+    unfold.cmx \
+    type.cmx \
+    spec.cmx \
+    s.cmx \
+    parserCsp.cmx \
+    option.cmx \
+    mdb.cmx \
+    lts.cmx \
+    idCol.cmx \
+    id.cmx \
+    event.cmx \
+    error.cmx \
+    dependency.cmx \
+    command.cmx \
+    check.cmx \
+    cCol.cmx \
+    builtinsCsp.cmx
+e.cmo : \
+    utils.cmo \
+    t.cmo \
+    s.cmo \
+    option.cmo \
+    idCol.cmo \
+    id.cmo \
+    error.cmo
+e.cmx : \
+    utils.cmx \
+    t.cmx \
+    s.cmx \
+    option.cmx \
+    idCol.cmx \
+    id.cmx \
+    error.cmx
+error.cmo :
+error.cmx :
+eval.cmo : \
+    vCol.cmo \
+    v.cmo \
+    utils.cmo \
+    univ.cmo \
+    option.cmo \
+    mdb.cmo \
+    idCol.cmo \
+    id.cmo \
+    error.cmo \
+    e.cmo \
+    col.cmo
+eval.cmx : \
+    vCol.cmx \
+    v.cmx \
+    utils.cmx \
+    univ.cmx \
+    option.cmx \
+    mdb.cmx \
+    idCol.cmx \
+    id.cmx \
+    error.cmx \
+    e.cmx \
+    col.cmx
+event.cmo : \
+    v.cmo \
+    id.cmo \
+    error.cmo
+event.cmx : \
+    v.cmx \
+    id.cmx \
+    error.cmx
+eventCol.cmo : \
+    event.cmo
+eventCol.cmx : \
+    event.cmx
+figState.cmo : \
+    peFig.cmo
+figState.cmx : \
+    peFig.cmx
+id.cmo : \
+    utils.cmo
+id.cmx : \
+    utils.cmx
+idCol.cmo : \
+    id.cmo \
+    error.cmo
+idCol.cmx : \
+    id.cmx \
+    error.cmx
+lexerCsp.cmo : \
+    utils.cmo \
+    tokenCsp.cmo \
+    stdio.cmo \
+    posin.cmo \
+    id.cmo \
+    error.cmo
+lexerCsp.cmx : \
+    utils.cmx \
+    tokenCsp.cmx \
+    stdio.cmx \
+    posin.cmx \
+    id.cmx \
+    error.cmx
+listSet.cmo : \
+    col.cmo
+listSet.cmx : \
+    col.cmx
+lts.cmo : \
+    option.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    col.cmo
+lts.cmx : \
+    option.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    col.cmx
+main.cmo : \
+    syncstitch.cmo \
+    drive.cmo
+main.cmx : \
+    syncstitch.cmx \
+    drive.cmx
+mdb.cmo : \
+    v.cmo \
+    utils.cmo \
+    t.cmo \
+    spec.cmo \
+    s.cmo \
+    p.cmo \
+    idCol.cmo \
+    id.cmo \
+    error.cmo \
+    col.cmo
+mdb.cmx : \
+    v.cmx \
+    utils.cmx \
+    t.cmx \
+    spec.cmx \
+    s.cmx \
+    p.cmx \
+    idCol.cmx \
+    id.cmx \
+    error.cmx \
+    col.cmx
+opCsp.cmo : \
+    s.cmo \
+    id.cmo
+opCsp.cmx : \
+    s.cmx \
+    id.cmx
+option.cmo :
+option.cmx :
+p.cmo : \
+    t.cmo \
+    s.cmo \
+    idCol.cmo \
+    id.cmo \
+    error.cmo \
+    e.cmo
+p.cmx : \
+    t.cmx \
+    s.cmx \
+    idCol.cmx \
+    id.cmx \
+    error.cmx \
+    e.cmx
+parserCsp.cmo : \
+    tokenCsp.cmo \
+    s.cmo \
+    posin.cmo \
+    option.cmo \
+    opCsp.cmo \
+    lexerCsp.cmo \
+    id.cmo \
+    error.cmo
+parserCsp.cmx : \
+    tokenCsp.cmx \
+    s.cmx \
+    posin.cmx \
+    option.cmx \
+    opCsp.cmx \
+    lexerCsp.cmx \
+    id.cmx \
+    error.cmx
+pe.cmo : \
+    utils.cmo \
+    ts.cmo \
+    peFig.cmo \
+    mdb.cmo \
+    figState.cmo \
+    error.cmo
+pe.cmx : \
+    utils.cmx \
+    ts.cmx \
+    peFig.cmx \
+    mdb.cmx \
+    figState.cmx \
+    error.cmx
+peFig.cmo : \
+    ts.cmo
+peFig.cmx : \
+    ts.cmx
+posin.cmo : \
+    stdio.cmo
+posin.cmx : \
+    stdio.cmx
+refinement.cmo : \
+    option.cmo \
+    lts.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    error.cmo \
+    col.cmo \
+    bfs.cmo
+refinement.cmx : \
+    option.cmx \
+    lts.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    error.cmx \
+    col.cmx \
+    bfs.cmx
+report.cmo : \
+    refinement.cmo \
+    mdb.cmo \
+    lts.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    c.cmo
+report.cmx : \
+    refinement.cmx \
+    mdb.cmx \
+    lts.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    c.cmx
+s.cmo : \
+    utils.cmo \
+    t.cmo \
+    id.cmo
+s.cmx : \
+    utils.cmx \
+    t.cmx \
+    id.cmx
+scc.cmo : \
+    idCol.cmo \
+    col.cmo
+scc.cmx : \
+    idCol.cmx \
+    col.cmx
+spec.cmo : \
+    v.cmo \
+    t.cmo \
+    p.cmo \
+    id.cmo \
+    e.cmo
+spec.cmx : \
+    v.cmx \
+    t.cmx \
+    p.cmx \
+    id.cmx \
+    e.cmx
+stdio.cmo :
+stdio.cmx :
+syncstitch.cmo : \
+    v.cmo \
+    utils.cmo \
+    ts.cmo \
+    transitions.cmo \
+    pe.cmo \
+    p.cmo \
+    option.cmo \
+    mdb.cmo \
+    lts.cmo \
+    idCol.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    error.cmo \
+    col.cmo \
+    check.cmo \
+    cCol.cmo \
+    c.cmo
+syncstitch.cmx : \
+    v.cmx \
+    utils.cmx \
+    ts.cmx \
+    transitions.cmx \
+    pe.cmx \
+    p.cmx \
+    option.cmx \
+    mdb.cmx \
+    lts.cmx \
+    idCol.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    error.cmx \
+    col.cmx \
+    check.cmx \
+    cCol.cmx \
+    c.cmx
+t.cmo : \
+    id.cmo \
+    error.cmo
+t.cmx : \
+    id.cmx \
+    error.cmx
+tCol.cmo : \
+    t.cmo \
+    error.cmo
+tCol.cmx : \
+    t.cmx \
+    error.cmx
+tokenCsp.cmo : \
+    id.cmo
+tokenCsp.cmx : \
+    id.cmx
+transitions.cmo : \
+    v.cmo \
+    utils.cmo \
+    spec.cmo \
+    p.cmo \
+    option.cmo \
+    mdb.cmo \
+    idCol.cmo \
+    eventCol.cmo \
+    event.cmo \
+    eval.cmo \
+    error.cmo \
+    c.cmo
+transitions.cmx : \
+    v.cmx \
+    utils.cmx \
+    spec.cmx \
+    p.cmx \
+    option.cmx \
+    mdb.cmx \
+    idCol.cmx \
+    eventCol.cmx \
+    event.cmx \
+    eval.cmx \
+    error.cmx \
+    c.cmx
+ts.cmo :
+ts.cmx :
+type.cmo : \
+    v.cmo \
+    utils.cmo \
+    univ.cmo \
+    tCol.cmo \
+    t.cmo \
+    spec.cmo \
+    s.cmo \
+    p.cmo \
+    option.cmo \
+    mdb.cmo \
+    idCol.cmo \
+    id.cmo \
+    eval.cmo \
+    error.cmo \
+    e.cmo \
+    col.cmo
+type.cmx : \
+    v.cmx \
+    utils.cmx \
+    univ.cmx \
+    tCol.cmx \
+    t.cmx \
+    spec.cmx \
+    s.cmx \
+    p.cmx \
+    option.cmx \
+    mdb.cmx \
+    idCol.cmx \
+    id.cmx \
+    eval.cmx \
+    error.cmx \
+    e.cmx \
+    col.cmx
+unfold.cmo : \
+    v.cmo \
+    transitions.cmo \
+    p.cmo \
+    option.cmo \
+    lts.cmo \
+    id.cmo \
+    eventCol.cmo \
+    event.cmo \
+    col.cmo \
+    cCol.cmo \
+    c.cmo \
+    bfs.cmo
+unfold.cmx : \
+    v.cmx \
+    transitions.cmx \
+    p.cmx \
+    option.cmx \
+    lts.cmx \
+    id.cmx \
+    eventCol.cmx \
+    event.cmx \
+    col.cmx \
+    cCol.cmx \
+    c.cmx \
+    bfs.cmx
+univ.cmo : \
+    v.cmo \
+    utils.cmo \
+    t.cmo \
+    spec.cmo \
+    mdb.cmo \
+    error.cmo
+univ.cmx : \
+    v.cmx \
+    utils.cmx \
+    t.cmx \
+    spec.cmx \
+    mdb.cmx \
+    error.cmx
+utils.cmo : \
+    option.cmo \
+    error.cmo
+utils.cmx : \
+    option.cmx \
+    error.cmx
+v.cmo : \
+    idCol.cmo \
+    id.cmo \
+    error.cmo \
+    e.cmo
+v.cmx : \
+    idCol.cmx \
+    id.cmx \
+    error.cmx \
+    e.cmx
+vCol.cmo : \
+    v.cmo
+vCol.cmx : \
+    v.cmx
+viz.cmo : \
+    lts.cmo \
+    eventCol.cmo \
+    col.cmo
+viz.cmx : \
+    lts.cmx \
+    eventCol.cmx \
+    col.cmx
