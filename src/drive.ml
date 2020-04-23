@@ -177,7 +177,9 @@ let drive run_mode =
           | Check.ResultTraceViolation info -> ()
           | Check.ResultFailureViolation info -> ()))
 
-  | _ -> printf "syncstitch -h\n"; exit 0
+  | _ ->
+     Arg.usage option_spec usage_msg;
+     exit 0
 
 let () =
   Arg.parse option_spec anon_fun usage_msg
