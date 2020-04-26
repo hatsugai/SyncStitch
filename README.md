@@ -13,3 +13,17 @@ Copyright (C) 2020 Hisabumi Hatsugai
 - [ocaml-csp](https://github.com/hatsugai/ocaml-csp)
 - [Guedra](https://github.com/hatsugai/Guedra)
 - [Guedra-draw](https://github.com/hatsugai/Guedra-draw)
+
+In addition, GTK+ 3 is needed for macOS, which can be installed through Homebrew:
+
+```sh
+brew install gtk+3
+```
+
+## Install
+
+Download a executable file from the release page.
+
+## Build
+
+see and run build-SyncStitch.sh
