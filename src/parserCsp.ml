@@ -256,7 +256,19 @@ and channel_term l ch =
              S.And [g; a])
       g xs es
   in
+  let parse_guard () =
+    let t = get_token l in
+    (match t with
+       LBRA ->
+        let g = expr l in
+        ensure_token l RBRA;
+        g
+     | _ ->
+        pushback l t;
+        Bool true)
+  in
   let (cs, b_all_send) = collect [] true in
+  let g = parse_guard () in (* ε | [g] *)
   if b_all_send then
     (* prefix (send) or channel application *)
     let x =
@@ -270,23 +282,15 @@ and channel_term l ch =
     let t = get_token l in
     match t with
       ARROW ->
-      let p = process_term l in
-      S.Prefix (x, p)
+       let p = process_term l in
+       if g = Bool true then
+         S.Prefix (x, p)
+       else
+         S.If (g, S.Prefix (x, p), S.Stop)
     | _ ->
        pushback l t; x
   else
     let (ps, xs, es) = parse_receive_term cs in
-    let g = (* ε | [g] *)
-      let t = get_token l in
-      (match t with
-         LBRA ->
-          let g = expr l in
-          ensure_token l RBRA;
-          g
-       | _ ->
-          pushback l t;
-          Bool true)
-    in
     ensure_token l ARROW;
     let p = process_term l in
     let g = combine_guard g xs es in
