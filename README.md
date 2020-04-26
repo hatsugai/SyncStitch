@@ -22,7 +22,7 @@ brew install gtk+3
 
 ## Install
 
-Download a executable file from the release page.
+Download an executable file from the release page.
 
 ## Build
 
