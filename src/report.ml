@@ -44,11 +44,11 @@ let violation_states_and_simpath path =
     [] -> (0, 0), path'
   | (u, (p, q))::_ -> (p, q), path'
 
-let print_simpath ch lts_q path =
+let print_simpath ch lts_p dlts_p lts_q path =
   List.iteri
     (fun i (u, (p, q)) ->
       let c = lts_q.v.(q).state in
-      fprintf ch "%3d %-10s %4d %s\n" i (Event.show u) p (C.show c))
+      fprintf ch "%3d %-10s %4d %s\n" i (Event.show u) q (C.show c))
     path
 
 let report_refinement_violation mdb lts_p dlts_p lts_q violation =
@@ -59,12 +59,12 @@ let report_refinement_violation mdb lts_p dlts_p lts_q violation =
          fprintf ch "trace violation: %s [T= %s\n" (Id.show pn) (Id.show qn);
          fprintf ch "event: %s\n" (Event.show u);
          let (p, q), path = violation_states_and_simpath path in
-         calc_initials_for_state_prop lts_p.v.(p);
-         let initials_p = lts_p.v.(p).initials in
+         calc_initials_for_state_prop dlts_p.v.(p);
+         let initials_p = dlts_p.v.(p).initials in
          let initials_q = lts_q.v.(q).initials in
          fprintf ch "%s initials: %s\n" (Id.show pn) (EventSet.show initials_p);
          fprintf ch "%s initials: %s\n" (Id.show qn) (EventSet.show initials_q);
-         print_simpath ch lts_q path
+         print_simpath ch lts_p dlts_p lts_q path
       | Refinement.FailureViolation (pn, qn, path) ->
          fprintf ch "failures violation: %s [F= %s\n" (Id.show pn) (Id.show qn);
          let (p, q), path = violation_states_and_simpath path in
@@ -72,5 +72,5 @@ let report_refinement_violation mdb lts_p dlts_p lts_q violation =
          let initials_q = lts_q.v.(q).initials in
          fprintf ch "%s minaccs: %s\n" (Id.show pn) (EventSetSet.show minacc_p);
          fprintf ch "%s initials: %s\n" (Id.show qn) (EventSet.show initials_q);
-         print_simpath ch lts_q path
+         print_simpath ch lts_p dlts_p lts_q path
       | Refinement.NoViolation -> ())
