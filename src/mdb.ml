@@ -118,7 +118,9 @@ let reg_bf_spec mdb bf_spec =
   Hashtbl.replace mdb.id_to_type bf_spec.bf_name bf_spec.bf_type
 
 let get_bf_spec mdb n =
-  Hashtbl.find mdb.id_to_builtin_fun_spec n
+  match Hashtbl.find_opt mdb.id_to_builtin_fun_spec n with
+    Some x -> x
+  | None -> corrupt_s "unknown builtin: " (Id.show n)
 
 let generate_tvar mdb =
   let id = mdb.next_id in
