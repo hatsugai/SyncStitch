@@ -439,7 +439,7 @@ and expr_prim l =
         GT -> S.List []
       | _ ->
          pushback l t;
-         match expr_list1_or_range l with
+         match expr_list1_or_range' l with
            XList xs ->
             ensure_token l GT;
             S.List xs
@@ -527,11 +527,23 @@ and expr_prim l =
      error l "missing expression"
 
 and expr_list1_or_range l =
-  let x = expr_sum l in
+  let x = expr l in
   let t = get_token l in
   match t with
     COMMA ->
      let xs = expr_list1 l in XList (x::xs)
+  | RANGE ->
+     let y = expr l in      (* from sum level *)
+     XRange (x, y)
+  | _ ->
+     pushback l t; XList [x]
+
+and expr_list1_or_range' l =
+  let x = expr_sum l in
+  let t = get_token l in
+  match t with
+    COMMA ->
+     let xs = expr_list1' l in XList (x::xs)
   | RANGE ->
      let y = expr_sum l in      (* from sum level *)
      XRange (x, y)
@@ -544,6 +556,15 @@ and expr_list1 l =
   match t with
     COMMA ->
      let xs = expr_list1 l in x::xs
+  | _ ->
+     pushback l t; [x]
+
+and expr_list1' l =
+  let x = expr_sum l in
+  let t = get_token l in
+  match t with
+    COMMA ->
+     let xs = expr_list1' l in x::xs
   | _ ->
      pushback l t; [x]
 
