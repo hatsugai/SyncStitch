@@ -25,6 +25,10 @@ let option_spec =
 	 "<face>                  font face");
     ("-font-size", Arg.Float (fun x -> font_size := x),
 	 "<size>             font size in pt");
+    ("-width", Arg.Float (fun x -> Option.window_width := x),
+	 "<width>                window width in inch");
+    ("-height", Arg.Float (fun x -> Option.window_height := x),
+	 "<height>              window height in inch");
     ("--debug",
      Arg.Unit (fun () -> Option.debug := true), "");
     ("-version",

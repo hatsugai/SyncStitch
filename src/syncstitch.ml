@@ -11,8 +11,8 @@ open Ts
 
 let open_process_explore mdb process_name tsi ts initial_state index_tree =
   let process_name = Id.show process_name in
-  let width = int_of_float (o_o.ppi *. 9.0) in
-  let height = int_of_float (o_o.ppi *. 5.3) in
+  let width = int_of_float (o_o.ppi *. !Option.window_width) in
+  let height = int_of_float (o_o.ppi *. !Option.window_height) in
   let window_title =
     sprintf "%s - %s - SyncStitch" process_name mdb.Mdb.model_filename
   in
