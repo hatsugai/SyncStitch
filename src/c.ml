@@ -141,7 +141,7 @@ let desc c =
        let s = sprintf "%s|| %s" (String.make level ' ') (EventSet.show x) in
        List.fold_left (asm (level + indent)) (s::acc) cs
     | Hide (x, c) ->
-       let s = sprintf "%s\ %s" (String.make level ' ') (EventSet.show x) in
+       let s = sprintf "%s\\ %s" (String.make level ' ') (EventSet.show x) in
        asm (level + indent) (s::acc) c
     | Rename (m, c) ->
        let s = sprintf "%srename" (String.make level ' ') in
