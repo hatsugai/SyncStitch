@@ -29,7 +29,7 @@ let ensure_token l t =
   if t=t' then
     ()
   else
-    error l (sprintf "missing '%s'" (show t))
+    error l (sprintf "missing '%s', found '%s' instead" (show t) (show t'))
 
 let rec id_list l =
   match get_token l with
