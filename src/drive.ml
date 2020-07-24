@@ -29,6 +29,8 @@ let option_spec =
 	 "<width>                window width in inch");
     ("-height", Arg.Float (fun x -> Option.window_height := x),
 	 "<height>              window height in inch");
+    ("-sw", Arg.Float (fun x -> Option.fig_state_width := x), "");
+    ("-sh", Arg.Float (fun x -> Option.fig_state_height := x), "");
     ("--debug",
      Arg.Unit (fun () -> Option.debug := true), "");
     ("-version",

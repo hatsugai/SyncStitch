@@ -121,8 +121,8 @@ let init wch pch cch nch pe_prop mdb tsi ts initial_state index_tree =
       sel_fig_id_state_on_path = None;
     }
   in
-  let state_width = o_o.funit *. 4.0 in
-  let state_height = o_o.funit *. 3.0 in
+  let state_width = o_o.funit *. !Option.fig_state_width in
+  let state_height = o_o.funit *. !Option.fig_state_height in
 
   let cc = {
       cur_state = initial_state;
