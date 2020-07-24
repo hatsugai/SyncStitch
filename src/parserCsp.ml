@@ -478,6 +478,7 @@ and expr_prim l =
          S.Apply (Var n, ref None, ets)
       | _ ->
          pushback l t; S.Var n)
+  | EVENT -> S.Univ (ref (Some T.event))
   | SET ->
      let t = get_token l in
      (match t with
