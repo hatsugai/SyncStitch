@@ -37,7 +37,7 @@ let keyword_alist = [
     ("within",      WITHIN);
   ]
 
-let is_space c = c = ' ' || c = '\t' || c = '\n'
+let is_space c = c = ' ' || c = '\t' || c = '\n' || c = '\r' || c = '\x0c'
 let is_digit c = c >= '0' && c <= '9'
 let is_alpha c = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
 let is_id_char_first c = is_alpha c || c ='_'
@@ -176,7 +176,11 @@ let rec get_token2 ch =
   else if is_digit c then
     (pushback ch c; get_int ch false)
   else
-    Error.error (Printf.sprintf "unknown token: '%c'" c)
+    let x = Char.code c in
+    if x >= 0x20 && x <= 0x7f then
+      Error.error (Printf.sprintf "unknown char: '%c'" c)
+    else
+      Error.error (Printf.sprintf "unknown char: '0x%02x'" x)
 
 and get_int ch minus =
   let rec loop n =
