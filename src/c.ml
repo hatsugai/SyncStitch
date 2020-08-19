@@ -9,7 +9,7 @@ type t =
   Omega
 | Process of V.env * P.t
 | Alt of t list
-| Seq of t list
+| Seq of t * (V.env * P.t) list
 | Par of evset * t list
 | Hide of evset * t
 | Rename of evmap * t
@@ -31,11 +31,14 @@ let rec equal x y =
         List.length cs1 = List.length cs2
         && List.for_all2 equal cs1 cs2
      | _ -> false)
-  | Seq cs1 ->
+  | Seq (c1, ps1) ->
     (match y with
-       Seq cs2 ->
-        List.length cs1 = List.length cs2
-        && List.for_all2 equal cs1 cs2
+       Seq (c2, ps2) ->
+        equal c1 c2
+        && List.for_all2
+             (fun (env1, p1) (env2, p2) ->
+               V.equal_env env1 env2 && p1 = p2)
+             ps1 ps2
      | _ -> false)
   | Par (x1, cs1) ->
     (match y with
@@ -64,10 +67,10 @@ let rec hash x =
      List.fold_left
        (fun acc c -> acc + hash c)
        1 cs
-  | Seq cs ->
+  | Seq (c, ps) ->
      List.fold_left
-       (fun acc c -> acc + hash c)
-       2 cs
+       (fun acc (env, p) -> acc + V.hash_env env + Hashtbl.hash p)
+       (hash c) ps
   | Par (x, cs) ->
      List.fold_left
        (fun acc c -> acc + hash c)
@@ -98,8 +101,9 @@ let rec show c =
      sprintf "%s%s" (P.desc p) (V.show_env env)
   | Alt cs ->
      show_list " [] " cs
-  | Seq cs ->
-     show_list "; " cs
+  | Seq (c, ps) ->
+     sprintf "; %s %s"
+       (show c) (P.show_list (List.map snd ps))
   | Par (x, cs) ->
      show_list " || " cs
   | Hide (x, c) ->
@@ -134,9 +138,17 @@ let desc c =
     | Alt cs ->
        let acc = (sprintf "%s[]" (String.make level ' '))::acc in
        List.fold_left (asm (level + indent)) acc cs
-    | Seq cs ->
+    | Seq (c, ps) ->
        let acc = (sprintf "%s;" (String.make level ' '))::acc in
-       List.fold_left (asm (level + indent)) acc cs
+       let acc = asm (level + indent) acc c in
+       List.fold_left
+         (fun acc (env, p) ->
+           let s =
+             sprintf "%s%s"
+               (String.make (level + indent) ' ')
+               (P.desc p)
+           in desc_env (level + indent * 2) (s::acc) env)
+         acc ps
     | Par (x, cs) ->
        let s = sprintf "%s|| %s" (String.make level ' ') (EventSet.show x) in
        List.fold_left (asm (level + indent)) (s::acc) cs
@@ -146,5 +158,13 @@ let desc c =
     | Rename (m, c) ->
        let s = sprintf "%srename" (String.make level ' ') in
        asm (level + indent) (s::acc) c
+
+  and desc_env level acc env =
+    IdMap.fold
+      (fun x v acc ->
+        let s = sprintf "%s%s=%s" (String.make level ' ')
+                  (Id.show x) (V.show v)
+        in s::acc)
+      env acc
 
   in List.rev (asm 0 [] c)

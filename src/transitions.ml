@@ -5,7 +5,7 @@ open Spec
 open Event
 open EventCol
 
-exception TransException
+exception TransException of string
 
 let conv_evset s =
   match s with
@@ -50,7 +50,7 @@ let normalize mdb c =
       C.Omega            -> c
     | C.Process (env, p) -> norm_proc env p
     | C.Alt cs           -> C.Alt (norm_cs cs)
-    | C.Seq cs           -> C.Seq (norm_cs cs)
+    | C.Seq (c, ps)      -> C.Seq (norm c, ps)
     | C.Par (x, cs)      -> C.Par (x, norm_cs cs)
     | C.Hide (x, c')     -> C.Hide (x, norm c')
     | C.Rename (m, c')   -> C.Rename (m, norm c')
@@ -83,7 +83,7 @@ let normalize mdb c =
     | P.Branch ps                  -> C.Process (norm_env env p, p)
     | P.Alt ps                     -> C.Alt (norm_ps env ps)
     | P.Amb ps                     -> C.Process (norm_env env p, p)
-    | P.Seq ps                     -> C.Seq (norm_ps env ps)
+    | P.Seq ps                     -> norm_seq env ps
     | P.Par (x, ps)                -> norm_par env x ps
     | P.Hide (x, p)                -> norm_hide env x p
     | P.Rename (m, p)              -> norm_rename env m p
@@ -104,6 +104,14 @@ let normalize mdb c =
 
   and norm_ps env ps =
     List.map (fun p -> norm (C.Process (env, p))) ps
+
+  and norm_seq env ps =
+    match ps with
+      [] -> C.Process (V.env0, P.Skip)
+    | [p] -> norm_proc env p
+    | p::ps' ->
+       let qs = List.map (fun p -> (norm_env env p, p)) ps' in
+       C.Seq (norm_proc env p, qs)
 
   and norm_par env x ps =
     let v = Eval.eval mdb env x in
@@ -135,18 +143,20 @@ let normalize mdb c =
     C.Alt cs
 
   and norm_xseq env x r p =
-    let cs =
+    let env_list =
       let v = Eval.eval mdb env r in
       match v with
         V.List vs ->
          List.map
-           (fun v ->
-             let envx = Eval.extend_env1 env x v in
-             norm (C.Process (envx, p)))
+           (fun v -> Eval.extend_env1 env x v)
            vs
       | _ -> error "norm_xop_list"
     in
-    C.Seq cs
+    match env_list with
+      [] -> C.Process (V.env0, P.Skip)
+    | [env] -> C.Process (env, p)
+    | env::env_list' ->
+       C.Seq (norm_proc env p, List.map (fun env -> (env, p)) env_list')
 
   and norm_xpar env x r a p =
     let v = Eval.eval mdb env a in
@@ -229,7 +239,7 @@ let rec trans mdb c =
       C.Omega            -> []
     | C.Process (env, p) -> trans_process env p
     | C.Alt cs           -> trans_alt_config cs
-    | C.Seq cs           -> trans_seq_config cs
+    | C.Seq (c, ps)      -> trans_seq_config c ps
     | C.Par (x, cs)      -> trans_par_config x cs
     | C.Hide (x, c)      -> trans_hide_config x c
     | C.Rename (m, c)    -> trans_rename_config m c
@@ -239,24 +249,24 @@ let rec trans mdb c =
       P.Stop                      -> []
     | P.Skip                      -> [(Tick, C.Omega)]
     | P.Omega                     -> []
-    | P.Cont (n, es)              -> raise TransException
+    | P.Cont (n, es)              -> raise (TransException (P.show p))
     | P.Spon p                    -> trans_spon env p
     | P.Prefix (e, p)             -> trans_prefix env e p
     | P.Receive (ch, _, xs, g, p) -> trans_receive env ch xs g p
     | P.Branch ps                 -> trans_branch env ps
-    | P.Alt ps                    -> raise TransException
+    | P.Alt ps                    -> raise (TransException (P.show p))
     | P.Amb ps                    -> trans_amb env ps
-    | P.Seq ps                    -> raise TransException
-    | P.Par (x, ps)               -> raise TransException
-    | P.Hide (x, p)               -> raise TransException
-    | P.Rename (m, p)             -> raise TransException
-    | P.XAlt (x, r, _, p)         -> raise TransException
+    | P.Seq ps                    -> raise (TransException (P.show p))
+    | P.Par (x, ps)               -> raise (TransException (P.show p))
+    | P.Hide (x, p)               -> raise (TransException (P.show p))
+    | P.Rename (m, p)             -> raise (TransException (P.show p))
+    | P.XAlt (x, r, _, p)         -> raise (TransException (P.show p))
     | P.XAmb (x, r, _, p)         -> trans_xamb env x r p
-    | P.XSeq (x, r, _, p)         -> raise TransException
-    | P.XPar (x, r, _, a, p)      -> raise TransException
-    | P.If (test, p1, p2)         -> raise TransException
-    | P.Let (bs, p)               -> raise TransException
-    | P.Case (e, n, bs)           -> raise TransException
+    | P.XSeq (x, r, _, p)         -> raise (TransException (P.show p))
+    | P.XPar (x, r, _, a, p)      -> raise (TransException (P.show p))
+    | P.If (test, p1, p2)         -> raise (TransException (P.show p))
+    | P.Let (bs, p)               -> raise (TransException (P.show p))
+    | P.Case (e, n, bs)           -> raise (TransException (P.show p))
     | P.Pos (pos, p) ->
        with_pos pos
          (fun () ->
@@ -336,21 +346,22 @@ let rec trans mdb c =
          in loop acc (trans c)
     in scan [] [] cs
 
-  and trans_seq_config cs =
-    match cs with
-      [] -> [(Tick, C.Omega)]
-    | [c] -> trans c
-    | c::cs' ->
-       let rec loop acc tr =
-         match tr with
-           [] -> acc
-         | (e, c')::tr' ->
-            (match e with
-               Tick ->
-                loop ((Tau, C.Seq cs')::acc) tr'
-             | Tau | Event _ | HiddenEvent _ ->
-                loop ((e, C.Seq (c'::cs'))::acc) tr')
-       in loop [] (trans c)
+  and trans_seq_config c ps =
+    let rec loop acc tr =
+      match tr with
+        [] -> acc
+      | (e, c')::tr' ->
+         (match e with
+          | Tick ->
+             (match ps with
+                [] -> corrupt "trans_seq_config"
+              | [(env, p)] ->
+                 loop ((Tau, C.Process (env, p))::acc) tr'
+              | (env, p)::ps' ->
+                 loop ((Tau, C.Seq (C.Process (env, p), ps'))::acc) tr')
+          | Tau | Event _ | HiddenEvent _ ->
+             loop ((e, C.Seq (c', ps))::acc) tr')
+    in loop [] (trans c)
 
   and trans_par_config x cs =
     if List.for_all (fun c -> c = C.Omega) cs then

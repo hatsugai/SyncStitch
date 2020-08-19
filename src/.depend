@@ -368,6 +368,7 @@ p.cmx : \
     e.cmx
 parserCsp.cmo : \
     tokenCsp.cmo \
+    t.cmo \
     s.cmo \
     posin.cmo \
     option.cmo \
@@ -377,6 +378,7 @@ parserCsp.cmo : \
     error.cmo
 parserCsp.cmx : \
     tokenCsp.cmx \
+    t.cmx \
     s.cmx \
     posin.cmx \
     option.cmx \
@@ -388,6 +390,7 @@ pe.cmo : \
     utils.cmo \
     ts.cmo \
     peFig.cmo \
+    option.cmo \
     mdb.cmo \
     figState.cmo \
     error.cmo
@@ -395,6 +398,7 @@ pe.cmx : \
     utils.cmx \
     ts.cmx \
     peFig.cmx \
+    option.cmx \
     mdb.cmx \
     figState.cmx \
     error.cmx
