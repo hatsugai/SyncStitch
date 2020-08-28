@@ -267,6 +267,7 @@ and channel_term l ch =
         pushback l t;
         Bool true)
   in
+  (* body of channel_term *)
   let (cs, b_all_send) = collect [] true in
   let g = parse_guard () in (* ε | [g] *)
   if b_all_send then
@@ -737,9 +738,17 @@ let rec parameter_decl_list l =
      let t = get_token l in
      (match t with
         COMMA ->
-         let ps = parameter_decl_list l in n::ps
+         let ps = parameter_decl_list l in (n, ref None, None)::ps
+      | TYPE_ANNON ->
+         let tyspec = type_spec l in
+         let t = get_token l in
+         (match t with
+            COMMA ->
+             let ps = parameter_decl_list l in (n, ref None, Some tyspec)::ps
+          | _ ->
+             pushback l t; [(n, ref None, Some tyspec)])
       | _ ->
-         pushback l t; [n])
+         pushback l t; [(n, ref None, None)])
   | _ -> error l "missing identifier"
 
 let const_def l =
@@ -751,11 +760,10 @@ let const_def l =
          S.Def (n, x)
       | LPAR ->
          let xs = parameter_decl_list l in
-         let xts = List.map (fun x -> (x, ref None, None)) xs in
          ensure_token l RPAR;
          ensure_token l DEF;
          let e = expr l in
-         S.Def (n, S.Fun (xts, e, ref None))
+         S.Def (n, S.Fun (xs, e, ref None))
       | _ -> error l "missing '=' or '('")
   | _ -> error l "missing identifier"
 

@@ -88,7 +88,11 @@ let rec get_token2 ch =
   else if c = ',' then
     COMMA
   else if c = ':' then
-    COLON
+    let c = input_char ch in
+    if c = ':' then
+      TYPE_ANNON
+    else
+      (pushback ch c; COLON)
   else if c = ';' then
     SEMICOLON
   else if c = '\\' then

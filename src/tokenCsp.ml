@@ -69,6 +69,7 @@ type t =
 | TILDE
 | TRUE
 | TYPE
+| TYPE_ANNON
 | VERTICALBAR
 | WITHIN
 
@@ -144,5 +145,6 @@ let show t =
   | TILDE                     -> "~"
   | TRUE                      -> "true"
   | TYPE                      -> "type"
+  | TYPE_ANNON                -> "::"
   | VERTICALBAR               -> "|"
   | WITHIN                    -> "within"
