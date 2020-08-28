@@ -65,7 +65,7 @@ let rec show e =
              (show e))
        "" bs
      in
-     sprintf "(let (%s) %s" s (show e)
+     sprintf "(let (%s) %s)" s (show e)
   | Case (e, n, bs) ->
      let s =
        List.fold_left
