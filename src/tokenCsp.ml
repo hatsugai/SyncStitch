@@ -34,9 +34,11 @@ type t =
 | INTERLEAVE
 | IS_REFINED_BY_ON_FAILURES
 | IS_REFINED_BY_ON_TRACES
+| LARROW
 | LBRA
 | LBRA_CHSET
 | LBRA_PAR
+| LBRA_RENAME
 | LCUR
 | LE
 | LET
@@ -58,6 +60,7 @@ type t =
 | RBRA
 | RBRA_CHSET
 | RBRA_PAR
+| RBRA_RENAME
 | RCUR
 | RPAR
 | SEMICOLON
@@ -112,9 +115,11 @@ let show t =
   | RANGE                     -> ".."
   | IS_REFINED_BY_ON_FAILURES -> "[F="
   | IS_REFINED_BY_ON_TRACES   -> "[T="
+  | LARROW                    -> "<-"
   | LBRA                      -> "["
   | LBRA_CHSET                -> "{|"
   | LBRA_PAR                  -> "[|"
+  | LBRA_RENAME               -> "[["
   | LCUR                      -> "{"
   | LE                        -> "<="
   | LET                       -> "let"
@@ -135,6 +140,7 @@ let show t =
   | RBRA                      -> "]"
   | RBRA_CHSET                -> "|}"
   | RBRA_PAR                  -> "|]"
+  | RBRA_RENAME               -> "]]"
   | RCUR                      -> "}"
   | RPAR                      -> ")"
   | SEMICOLON                 -> ";"

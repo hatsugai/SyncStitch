@@ -117,6 +117,8 @@ let rec get_token2 ch =
       EXTCHOICE
     else if c = '|' then
       LBRA_PAR
+    else if c = '[' then
+      LBRA_RENAME
     else if c = 'T' then
       let c = input_char ch in
       if c = '=' then
@@ -132,7 +134,11 @@ let rec get_token2 ch =
     else
       (pushback ch c; LBRA)
   else if c = ']' then
-    RBRA
+    let c = input_char ch in
+    if c = ']' then
+      RBRA_RENAME
+    else
+      (pushback ch c; RBRA)
   else if c = '+' then
     PLUS
   else if c = '-' then
@@ -163,6 +169,8 @@ let rec get_token2 ch =
     let c = input_char ch in
     if c = '=' then
       LE
+    else if c = '-' then
+      LARROW
     else
       (pushback ch c; LT)
   else if c = '>' then

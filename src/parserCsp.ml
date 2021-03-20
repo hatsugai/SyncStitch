@@ -397,8 +397,39 @@ and expr_prod l =
   | _ -> pushback l t; x
 
 and expr_unary l =
-  expr_prim l
+  expr_rename l
 
+and expr_rename l =
+  let x = expr_prim l in
+  let t = get_token l in
+  match t with
+  | LBRA_RENAME ->
+     let t2 = get_token l in
+     (match t2 with
+      | RBRA_RENAME -> x (* handle empty case [[ ]] here to simplify rename_list *)
+      | _ ->
+         pushback l t2;
+         let ps = rename_list l in   (* list of pair (tuple) of events *)
+         ensure_token l RBRA_RENAME;
+         let m =
+           Chmap (List.map (fun (a, b) -> ((a, ref None), (b, ref None))) ps)
+         in
+         S.Rename (m, x))
+  | _ -> pushback l t; x
+and rename_list l =
+  let x = expr l in
+  let t = get_token l in
+  match t with
+  | LARROW ->
+     let y = expr l in
+     let t = get_token l in
+     (match t with
+      | COMMA ->
+         let ps = rename_list l in (x, y)::ps
+      | _ ->
+         pushback l t; [(x, y)])
+  | _ ->
+     error l "missing '<-' for renaming"
 and expr_prim l =
   let t = get_token l in
   match t with
