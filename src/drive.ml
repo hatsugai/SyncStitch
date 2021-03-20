@@ -33,6 +33,8 @@ let option_spec =
     ("-sh", Arg.Float (fun x -> Option.fig_state_height := x), "");
     ("--debug",
      Arg.Unit (fun () -> Option.debug := true), "");
+    ("--debug-type",
+     Arg.Unit (fun () -> Option.debug_type := true), "");
     ("-version",
      Arg.Unit (fun () -> printf "%s\n" version; exit 0),
      "                     show version");

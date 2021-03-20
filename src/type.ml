@@ -190,12 +190,12 @@ let counter = ref 0
 
 let rec find_type mdb s_m s_v expr =
   let c = !counter in
-  (if !Option.debug then
+  (if !Option.debug || !Option.debug_type then
      (counter := c + 1;
       printf "find_type[%d] << %s\n" c (S.show expr);
       flush stdout));
   let (s_m, t) = find_type2 mdb s_m s_v expr in
-  (if !Option.debug then
+  (if !Option.debug || !Option.debug_type then
      (printf "find_type[%d] >> %s\n" c (T.show (subst_tv s_m t));
      flush stdout));
   (s_m, t)
