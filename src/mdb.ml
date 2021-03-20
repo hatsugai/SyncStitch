@@ -26,6 +26,10 @@ type t = {
 
 let g_mdb_opt = ref (None : t option)
 
+let int_inf_default = ref (-3)
+let int_sup_default = ref 13
+let list_max_length_default = ref 7
+
 let show mdb =
   printf "* mdb\n";
   printf "model_filename = %s\n" mdb.model_filename;
@@ -88,9 +92,12 @@ let get_prop_with_default command_list key default =
   in loop command_list
 
 let make_mdb model_filename command_list =
-  let a = get_prop_with_default command_list "int_inf" (-3) in
-  let b = get_prop_with_default command_list "int_sup" 13 in
-  let maxlen = get_prop_with_default command_list "list_max_length" 7 in
+  let a = get_prop_with_default command_list "int_inf" !int_inf_default in
+  let b = get_prop_with_default command_list "int_sup" !int_sup_default in
+  let maxlen =
+    get_prop_with_default command_list
+      "list_max_length" !list_max_length_default
+  in
   let mdb = {
       model_filename = model_filename;
       id_to_type = Hashtbl.create 0;
