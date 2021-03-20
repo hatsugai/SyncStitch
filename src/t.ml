@@ -155,3 +155,10 @@ let rec channel_parameter_type_list t =
     App (Event, []) -> []
   | App (Fun, [t; u]) -> t::(channel_parameter_type_list u)
   | _ -> Error.corrupt_s "channel_parameter_type_list " (show t)
+
+let rec is_polymorphic t =
+  match t with
+    Var v -> false
+  | App (tc, ts) ->
+     List.exists is_polymorphic ts
+  | Gen i -> true
