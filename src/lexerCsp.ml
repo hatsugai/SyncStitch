@@ -113,7 +113,9 @@ let rec get_token2 ch =
     RCUR
   else if c = '[' then
     let c = input_char ch in
-    if c = '|' then
+    if c = ']' then
+      EXTCHOICE
+    else if c = '|' then
       LBRA_PAR
     else if c = 'T' then
       let c = input_char ch in

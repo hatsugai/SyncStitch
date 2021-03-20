@@ -157,8 +157,7 @@ and process_extchoice l =
   let rec loop ps =
     let t = get_token l in
     match t with
-      LBRA ->
-       ensure_token l RBRA;
+    | EXTCHOICE ->
        let p = process_seq l in
        loop (p::ps)
     | _ ->
@@ -415,25 +414,20 @@ and expr_prim l =
      (match xs with
         [x] -> x
       | _ -> S.Tuple xs)
-  | LBRA ->
+  | EXTCHOICE ->
      let t = get_token l in
      (match t with
-        RBRA ->
+        ID x ->
          let t = get_token l in
-         (match t with
-            ID x ->
-             let t = get_token l in
-             if t = COLON then      (* xalt *)
-               let r = expr l in
-               ensure_token l AT;
-               let p = process l in
-               S.XAlt (x, r, ref None, p)
-             else
-               error l "unexpected ']'"
-          | _ ->
-             error l "unexpected ']'")
+         if t = COLON then      (* xalt *)
+           let r = expr l in
+           ensure_token l AT;
+           let p = process l in
+           S.XAlt (x, r, ref None, p)
+         else
+           error l "unexpected ']'"
       | _ ->
-         error l "unexpected '['")
+         error l "missing identifier for replicated alt")
   | LT ->
      let t = get_token l in
      (match t with

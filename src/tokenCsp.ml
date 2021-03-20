@@ -23,6 +23,7 @@ type t =
 | EQ
 | EVENT
 | EXCLAMATION
+| EXTCHOICE
 | FALSE
 | GE
 | GT
@@ -99,6 +100,7 @@ let show t =
   | EQ                        -> "=="
   | EVENT                     -> "event"
   | EXCLAMATION               -> "!"
+  | EXTCHOICE                 -> "[]"
   | FALSE                     -> "false"
   | GE                        -> ">="
   | GT                        -> ">"
