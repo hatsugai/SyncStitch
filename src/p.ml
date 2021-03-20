@@ -381,10 +381,10 @@ let rec desc p0 =
       | [p] -> desc p
       | p::ps' ->
          List.fold_left
-           (fun str p -> sprintf "%s||%s" str (enparen p0 p))
+           (fun str p -> sprintf "%s || %s" str (enparen p0 p))
            (sprintf "%s" (enparen p0 p)) ps')
   | Hide (x, p) ->
-     sprintf "(%s)\\%s" (enparen p0 p) (E.desc x)
+     sprintf "%s\\%s" (enparen p0 p) (E.desc x)
   | Rename (m, p) ->
      sprintf "%s[[...]]" (enparen p0 p)
   | XAlt (x, r, t_r, p) ->
