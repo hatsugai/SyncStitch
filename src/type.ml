@@ -704,6 +704,7 @@ let rec resolve_tv s_m expr =
   in f expr
 
 let infer_type_defs mdb ds =
+  Db.tr "infer_type_defs";
   let ts = List.map (fun (n, e) -> alloc_tvar mdb) ds in
   let s_v =
     List.fold_left2
@@ -719,16 +720,19 @@ let infer_type_defs mdb ds =
             unify s_m t u))
       TVarMap.empty ds ts
   in
+  Db.tr "  resolve";
   List.iter
     (fun (n, e) ->
       Error.with_context_name (Id.show n)
         (fun () -> resolve_tv s_m e))
     ds;
+  Db.tr "  reg_type";
   IdMap.iter
     (fun n t ->
       let t' = subst_tv_with_check s_m t in
       Mdb.reg_type mdb n t')
     s_v;
+  Db.tr "  classify into processes, functions, and values";
   List.iter2
     (fun (n, e) t ->
       Error.with_context_name (Id.show n)
@@ -762,8 +766,7 @@ let infer_type_defs mdb ds =
     ds ts
 
 let handle_variant mdb n bs =
-  (if !Option.debug then
-     printf "handle_variant: %s\n" (Id.show n));
+  Db.tr_s "handle_variant: " (Id.show n);
   let cs =
     List.map
       (fun (ctor, tyspec_list) ->
@@ -775,9 +778,12 @@ let handle_variant mdb n bs =
         in
         (ctor, ctor_spec))
       bs
-  in Mdb.reg_variant mdb n cs
+  in
+  Db.tr "=> done";
+  Mdb.reg_variant mdb n cs
 
 let handle_channels mdb ds =
+  Db.tr "handle_channels";
   let alphabet =
     List.fold_left
       (fun alphabet (ns, tyspec_list) ->
@@ -788,7 +794,13 @@ let handle_channels mdb ds =
              (fun () ->
                let ts = List.map (tyspec_to_type mdb) tyspec_list in
                let zss = List.map (Univ.calc_univ mdb) ts in
-               let vss = Utils.cartesian_product zss in
+               let vss =
+                 try
+                   Utils.cartesian_product zss
+                 with
+                   Stack_overflow ->
+                   Error.error "channel parameter is too big"
+               in
                List.fold_left
                  (fun alphabet n ->
                    (if !Option.debug then
@@ -800,14 +812,16 @@ let handle_channels mdb ds =
                      alphabet vss)
                  alphabet ns))
       [] ds
-  in Mdb.reg_alphabet mdb alphabet
+  in
+  Db.tr "  reg_alphabet";
+  Mdb.reg_alphabet mdb alphabet
 
 let infer_type_alias mdb n tyspec =
-  (if !Option.debug then
-     printf "nametype: %s\n" (Id.show n));
+  Db.tr_s "nametype: " (Id.show n);
   Mdb.reg_type_alias mdb n (tyspec_to_type mdb tyspec)
 
 let infer_type_scc mdb defs chdefs scc =
+  Db.tr "infer_type_scc";
   let def =
     match scc with
       [] -> Error.error "infer_type_scc: no def"

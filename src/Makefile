@@ -70,6 +70,7 @@ LIBS=unix.cmxa
 OCAML_SOURCES=\
 	error.ml \
 	option.ml \
+	db.ml \
 	col.ml \
 	listSet.ml \
 	utils.ml \
@@ -124,6 +125,7 @@ OCAML_SOURCES=\
 OCAML_CMX=\
 	error.cmx \
 	option.cmx \
+	db.cmx \
 	col.cmx \
 	listSet.cmx \
 	utils.cmx \
