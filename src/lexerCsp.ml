@@ -80,7 +80,7 @@ let rec get_token2 ch =
       if c = '|' then
         INTERLEAVE
       else
-        (pushback ch c; pushback ch '|'; VERTICALBAR)
+        (pushback ch c; PARALLEL)
     else
       (pushback ch c; VERTICALBAR)
   else if c = '|' then

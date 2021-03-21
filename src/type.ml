@@ -232,12 +232,14 @@ and find_type2 mdb s_m s_v expr =
   | S.Amb ps                     -> find_type_process_list mdb s_m s_v ps
   | S.Seq ps                     -> find_type_process_list mdb s_m s_v ps
   | S.Par (x, ps)                -> find_type_par mdb s_m s_v x ps
+  | S.AlphaPar xs                -> find_type_apar mdb s_m s_v xs
   | S.Hide (x, p)                -> find_type_hide mdb s_m s_v x p
   | S.Rename (m, p)              -> find_type_rename mdb s_m s_v m p
   | S.XAlt (x, r, rt, p)         -> find_type_xalt mdb s_m s_v x r rt p
   | S.XAmb (x, r, rt, p)         -> find_type_xalt mdb s_m s_v x r rt p
   | S.XSeq (x, r, rt, p)         -> find_type_xseq mdb s_m s_v x r rt p
   | S.XPar (x, r, rt, a, p)      -> find_type_xpar mdb s_m s_v x r rt a p
+  | S.XAlphaPar (x, r, rt, a, p) -> find_type_xapar mdb s_m s_v x r rt a p
   | S.Fun (xts, e, rt)           -> find_type_fun mdb s_m s_v xts e rt
   | S.Apply (f, rt_f, ets)       -> find_type_apply mdb s_m s_v f rt_f ets
   | S.Pos (pos, e) ->
@@ -486,6 +488,18 @@ and find_type_xpar mdb s_m s_v x r rt_r a p =
   let s_m = unify s_m t_p T.process in
   (s_m, T.process)
 
+and find_type_xapar mdb s_m s_v x r rt_r a p =
+  let m = alloc_tvar mdb in
+  let (s_m, t_r) = find_type mdb s_m s_v r in
+  rt_r := Some t_r;
+  let s_m = unify s_m t_r (T.App (T.Set, [m])) in
+  let s_vx = extend_type_env s_v x m in
+  let (s_m, t_a) = find_type mdb s_m s_vx a in
+  let s_m = unify s_m t_a T.event_set in
+  let (s_m, t_p) = find_type mdb s_m s_vx p in
+  let s_m = unify s_m t_p T.process in
+  (s_m, T.process)
+
 and find_type_process_list mdb s_m s_v ps =
   let s_m =
     List.fold_left
@@ -499,6 +513,17 @@ and find_type_par mdb s_m s_v x ps =
   let (s_m, t_x) = find_type mdb s_m s_v x in
   let s_m = unify s_m t_x T.event_set in
   find_type_process_list mdb s_m s_v ps
+
+and find_type_apar mdb s_m s_v xs =
+  let s_m =
+    List.fold_left
+      (fun s_m (a, p) ->
+        let (s_m, t_a) = find_type mdb s_m s_v a in
+        let s_m = unify s_m t_a T.event_set in
+        let (s_m, t_p) = find_type mdb s_m s_v p in
+        unify s_m t_p T.process)
+      s_m xs
+  in (s_m, T.process)
 
 and find_type_hide mdb s_m s_v x p =
   let (s_m, t_x) = find_type mdb s_m s_v x in
@@ -686,12 +711,14 @@ let rec resolve_tv s_m expr =
     | S.Amb ps -> List.iter f ps
     | S.Seq ps -> List.iter f ps
     | S.Par (a, ps) -> f a; List.iter f ps
+    | S.AlphaPar xs -> List.iter (fun (a, p) -> f a; f p) xs
     | S.Hide (a, p) -> f a; f p
     | S.Rename (m, p) -> f m; f p
     | S.XAlt (x, r, rt_r, p) -> f r; g rt_r; f p
     | S.XAmb (x, r, rt_r, p) -> f r; g rt_r; f p
     | S.XSeq (x, r, rt_r, p) -> f r; g rt_r; f p
     | S.XPar (x, r, rt_r, a, p) -> f r; g rt_r; f a; f p
+    | S.XAlphaPar (x, r, rt_r, a, p) -> f r; g rt_r; f a; f p
     | S.Fun (xts, e, rt) ->
        List.iter (fun (x, rt, _) -> g rt) xts;
        f e; g rt

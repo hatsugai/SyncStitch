@@ -11,6 +11,7 @@ type t =
 | Alt of t list
 | Seq of t * (V.env * P.t) list
 | Par of evset * t list
+| AlphaPar of (evset * evset) list * t list (* alpha, nosync *)
 | Hide of evset * t
 | Rename of evmap * t
 
@@ -47,6 +48,16 @@ let rec equal x y =
         && List.length cs1 = List.length cs2
         && List.for_all2 equal cs1 cs2
      | _ -> false)
+  | AlphaPar (xs1, cs1) ->
+    (match y with
+       AlphaPar (xs2, cs2) ->
+        List.length cs1 = List.length cs2
+        && List.for_all2 equal cs1 cs2
+        && List.for_all2
+             (fun (a, _) (b, _) ->
+               EventSet.equal a b)
+             xs1 xs2
+     | _ -> false)
   | Hide (x1, c1) ->
     (match y with
        Hide (x2, c2) ->
@@ -75,6 +86,10 @@ let rec hash x =
      List.fold_left
        (fun acc c -> acc + hash c)
        (3 + EventSet.hash x) cs
+  | AlphaPar (xs, cs) ->
+     List.fold_left2
+       (fun acc (a, b) c -> acc + EventSet.hash a + hash c)
+       6 xs cs
   | Hide (x, c) ->
      4 + EventSet.hash x + hash c
   | Rename (m, c) ->
@@ -106,6 +121,8 @@ let rec show c =
        (show c) (P.show_list (List.map snd ps))
   | Par (x, cs) ->
      show_list " || " cs
+  | AlphaPar (xs, cs) ->
+     show_list " || " cs        (* ### alphabets *)
   | Hide (x, c) ->
      sprintf "(%s)\\{*}" (show c)
   | Rename (m, c) ->
@@ -119,6 +136,15 @@ and show_list sep cs =
       else
         s ^ sep ^ (show c))
     "" cs
+
+and show_alpha_proc_list xs =
+  List.fold_left
+    (fun s (a, b, c) ->
+      if s="" then
+        show c
+      else
+        s ^ "||" ^ (show c))
+    "" xs
 
 let indent = 1
 
@@ -152,6 +178,19 @@ let desc c =
     | Par (x, cs) ->
        let s = sprintf "%s|| %s" (String.make level ' ') (EventSet.show x) in
        List.fold_left (asm (level + indent)) (s::acc) cs
+    | AlphaPar (xs, cs) ->
+       let s = sprintf "%s||" (String.make level ' ') in
+       List.fold_left2
+         (fun acc (a, b) c ->
+           let s =
+             sprintf "%s%s %s"
+               (String.make (level + indent) ' ')
+               (EventSet.show a)
+               (EventSet.show b)
+           in
+           let acc = s::acc in
+           asm (level + indent) acc c)
+         (s::acc) xs cs
     | Hide (x, c) ->
        let s = sprintf "%s\\ %s" (String.make level ' ') (EventSet.show x) in
        asm (level + indent) (s::acc) c

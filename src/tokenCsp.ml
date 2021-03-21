@@ -51,6 +51,7 @@ type t =
 | NOT
 | OF
 | OR
+| PARALLEL
 | PERCENT
 | PERIOD
 | PLUS
@@ -132,6 +133,7 @@ let show t =
   | NOT                       -> "not"
   | OF                        -> "of"
   | OR                        -> "or"
+  | PARALLEL                  -> "||"
   | PERCENT                   -> "%"
   | PERIOD                    -> "."
   | PLUS                      -> "+"

@@ -29,12 +29,14 @@ type t =
 | Amb of t list
 | Seq of t list
 | Par of t * t list
+| AlphaPar of (t * t) list
 | Hide of t * t
 | Rename of t * t
 | XAlt of Id.t * t * T.t option ref * t
 | XAmb of Id.t * t * T.t option ref * t
 | XSeq of Id.t * t * T.t option ref * t
 | XPar of Id.t * t * T.t option ref * t * t
+| XAlphaPar of Id.t * t * T.t option ref * t * t
 | Fun of (Id.t * T.t option ref * tyspec option) list * t * T.t option ref
 | Apply of t * T.t option ref * (t * T.t option ref) list
 | Pos of pos * t
@@ -130,6 +132,8 @@ let rec show e =
   | Seq ps -> sprintf "(seq %s)" (show_list ps)
   | Par (a, ps) ->
      sprintf "(par %s %s)" (show a) (show_list ps)
+  | AlphaPar xs ->
+     sprintf "(apar %s)" (show_alpha_proc_list xs)
   | Hide (a, p) ->
      sprintf "(hide %s %s)" (show a) (show p)
   | Rename (m, p) ->
@@ -142,6 +146,8 @@ let rec show e =
      sprintf "(xseq %s %s %s)" (Id.show x) (show r) (show p)
   | XPar (x, r, rt, a, p) ->
      sprintf "(xpar %s %s %s %s)" (Id.show x) (show r) (show a) (show p)
+  | XAlphaPar (x, r, rt, a, p) ->
+     sprintf "(xapar %s %s %s %s)" (Id.show x) (show r) (show a) (show p)
   | Apply (f, rt_f, ets) ->
      sprintf "(%s %s)" (show f)
        (Utils.cons_str_list
@@ -158,6 +164,11 @@ let rec show e =
 and show_list xs =
   List.fold_left
     (fun s x -> sprintf "%s %s" s (show x))
+    "" xs
+
+and show_alpha_proc_list xs =
+  List.fold_left
+    (fun s (a, p) -> sprintf "%s (%s %s)" s (show a) (show p))
     "" xs
 
 and show_tyspec t =

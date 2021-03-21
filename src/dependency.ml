@@ -82,6 +82,11 @@ let rec fv ns acc expr =
   | Amb ps -> List.fold_left (fv ns) acc ps
   | Seq ps -> List.fold_left (fv ns) acc ps
   | Par (a, ps) -> List.fold_left (fv ns) (fv ns acc a) ps
+  | AlphaPar xs ->
+     List.fold_left
+       (fun acc (a, p) ->
+         fv ns (fv ns acc a) p)
+       acc xs
   | Hide (a, p) -> fv ns (fv ns acc a) p
   | Rename (m, p) -> fv ns (fv ns acc m) p
   | XAlt (x, r, rt_r, p) ->
@@ -96,6 +101,9 @@ let rec fv ns acc expr =
   | XPar (x, r, rt_r, a, p) ->
      let ns' = IdSet.remove x ns in
      fv ns' (fv ns (fv ns acc a) r) p
+  | XAlphaPar (x, r, rt_r, a, p) ->
+     let ns' = IdSet.remove x ns in
+     fv ns' (fv ns' (fv ns acc r) a) p
   | Fun (xts, e, rt) ->
      let acc =
        List.fold_left

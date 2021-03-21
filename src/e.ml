@@ -168,12 +168,14 @@ and convert2 mdb e =
   | S.Amb _       -> error_s "E.convert" (S.show e)
   | S.Seq _       -> error_s "E.convert" (S.show e)
   | S.Par _       -> error_s "E.convert" (S.show e)
+  | S.AlphaPar _  -> error_s "E.convert" (S.show e)
   | S.Hide _      -> error_s "E.convert" (S.show e)
   | S.Rename _    -> error_s "E.convert" (S.show e)
   | S.XAlt _      -> error_s "E.convert" (S.show e)
   | S.XAmb _      -> error_s "E.convert" (S.show e)
   | S.XSeq _      -> error_s "E.convert" (S.show e)
   | S.XPar _      -> error_s "E.convert" (S.show e)
+  | S.XAlphaPar _ -> error_s "E.convert" (S.show e)
   | S.Fun (xts, e, rt) ->
      let xts' =
        List.map

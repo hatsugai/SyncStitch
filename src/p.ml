@@ -15,12 +15,14 @@ type t =
 | Amb of t list
 | Seq of t list
 | Par of E.t * t list
+| AlphaPar of (E.t * t) list
 | Hide of E.t * t
 | Rename of E.t * t
 | XAlt of Id.t * E.t * T.t * t
 | XAmb of Id.t * E.t * T.t * t
 | XSeq of Id.t * E.t * T.t * t
 | XPar of Id.t * E.t * T.t * E.t * t
+| XAlphaPar of Id.t * E.t * T.t * E.t * t
 | If of E.t * t * t
 | Let of ((Id.t * T.t) list * E.t) list * t
 | Case of E.t * Id.t * (Id.t * (Id.t list * t)) list
@@ -88,6 +90,8 @@ let rec convert mdb expr =
      Seq (List.map (convert mdb) ps)
   | S.Par (x, ps) -> 
      Par (E.convert mdb x, List.map (convert mdb) ps)
+  | S.AlphaPar xs ->
+     AlphaPar (List.map (fun (a, p) -> (E.convert mdb a, convert mdb p)) xs)
   | S.Hide (a, p) ->
      Hide (E.convert mdb a, convert mdb p)
   | S.Rename (m, p) ->
@@ -100,6 +104,8 @@ let rec convert mdb expr =
      XSeq (x, E.convert mdb r, ft rt, convert mdb p)
   | S.XPar (x, r, rt, a, p) ->
      XPar (x, E.convert mdb r, ft rt, E.convert mdb a, convert mdb p)
+  | S.XAlphaPar (x, r, rt, a, p) ->
+     XAlphaPar (x, E.convert mdb r, ft rt, E.convert mdb a, convert mdb p)
   | S.Fun (xts, e, rt) -> error "P.convert"
   | S.Apply (f, t_f, ets) ->
      (match f with
@@ -143,6 +149,12 @@ let rec collect_vars bs acc p =
   | Par (x, ps) ->
      let acc = E.collect_vars bs acc x in
      List.fold_left (collect_vars bs) acc ps
+  | AlphaPar xs ->
+     List.fold_left
+       (fun acc (a, p) ->
+         let acc = E.collect_vars bs acc a in
+         collect_vars bs acc p)
+       acc xs
   | Hide (x, p) ->
      let acc = E.collect_vars bs acc x in
      collect_vars bs acc p
@@ -165,6 +177,11 @@ let rec collect_vars bs acc p =
      let acc = E.collect_vars bs acc a in
      let acc = E.collect_vars bs acc r in
      let bs' = IdSet.remove x bs in
+     collect_vars bs' acc p
+  | XAlphaPar (x, r, t_r, a, p) ->
+     let acc = E.collect_vars bs acc r in
+     let bs' = IdSet.remove x bs in
+     let acc = E.collect_vars bs' acc a in
      collect_vars bs' acc p
   | If (test, p1, p2) ->
      let acc = E.collect_vars bs acc test in
@@ -212,6 +229,7 @@ let rec show p =
   | Amb ps -> sprintf "(amb %s)" (show_list ps)
   | Seq ps -> sprintf "(seq %s)" (show_list ps)
   | Par (x, ps) -> sprintf "(par %s %s)" (E.show x) (show_list ps)
+  | AlphaPar xs -> sprintf "(apar %s)" (show_alpha_proc_list xs)
   | Hide (x, p) -> sprintf "(hide %s %s)" (E.show x) (show p)
   | Rename (m, p) -> sprintf "(rename %s %s)" (E.show m) (show p)
   | XAlt (x, r, t_r, p) ->
@@ -222,6 +240,8 @@ let rec show p =
      sprintf "(xseq %s %s %s)" (Id.show x) (E.show r) (show p)
   | XPar (x, r, t_r, a, p) ->
      sprintf "(xpar %s %s %s %s)" (Id.show x) (E.show r) (E.show a) (show p)
+  | XAlphaPar (x, r, t_r, a, p) ->
+     sprintf "(xapar %s %s %s %s)" (Id.show x) (E.show r) (E.show a) (show p)
   | If (test, p1, p2) ->
      sprintf "(if %s %s %s)" (E.show test) (show p1) (show p2)
   | Let (bs, p) ->
@@ -249,6 +269,11 @@ and show_list ps =
   List.fold_left
     (fun s p -> sprintf "%s %s" s (show p))
     "" ps
+
+and show_alpha_proc_list xs =
+  List.fold_left
+    (fun s (a, p) -> sprintf "%s (%s %s)" s (E.show a) (show p))
+    "" xs
 
 let rec reduce p =
   match p with
@@ -282,12 +307,14 @@ let rec reduce p =
   | Par (x, ps) ->
      let ps = List.map reduce ps in
      Par (x, ps)
+  | AlphaPar xs -> AlphaPar (List.map (fun (a, p) -> (a, reduce p)) xs)
   | Hide (x, p) -> Hide (x, reduce p)
   | Rename (m, p) -> Rename (m, reduce p)
   | XAlt (x, r, t_r, p) -> XAlt (x, r, t_r, reduce p)
   | XAmb (x, r, t_r, p) -> XAmb (x, r, t_r, reduce p)
   | XSeq (x, r, t_r, p) -> XSeq (x, r, t_r, reduce p)
   | XPar (x, r, t_r, a, p) -> XPar (x, r, t_r, a, reduce p)
+  | XAlphaPar (x, r, t_r, a, p) -> XAlphaPar (x, r, t_r, a, reduce p)
   | If (test, p1, p2) -> If (test, reduce p1, reduce p2)
   | Let (bs, p) -> Let (bs, reduce p)
   | Case (e, n, bs) ->
@@ -309,12 +336,14 @@ let rec priority p =
   | Amb ps -> 4
   | Seq ps -> 3
   | Par (x, ps) -> 4
+  | AlphaPar _ -> 4
   | Hide (x, p) -> 5
   | Rename (m, p) -> 1
   | XAlt (x, r, t_r, p) -> 6
   | XAmb (x, r, t_r, p) -> 6
   | XSeq (x, r, t_r, p) ->  6
   | XPar (x, r, t_r, a, p) -> 6
+  | XAlphaPar (x, r, t_r, a, p) -> 6
   | If (test, p1, p2) -> 7
   | Let (bs, p) -> 7
   | Case (e, n, bs) -> 7
@@ -383,6 +412,7 @@ let rec desc p0 =
          List.fold_left
            (fun str p -> sprintf "%s||%s" str (enparen p0 p))
            (sprintf "%s" (enparen p0 p)) ps')
+  | AlphaPar xs -> "||"
   | Hide (x, p) ->
      sprintf "(%s)\\%s" (enparen p0 p) (E.desc x)
   | Rename (m, p) ->
@@ -394,6 +424,8 @@ let rec desc p0 =
   | XSeq (x, r, t_r, p) ->
      sprintf ";%s:%s@%s" (Id.show x) (E.desc r) (enparen p0 p)
   | XPar (x, r, t_r, a, p) ->
+     sprintf "||%s:%s@%s" (Id.show x) (E.desc r) (enparen p0 p)
+  | XAlphaPar (x, r, t_r, a, p) ->
      sprintf "||%s:%s@%s" (Id.show x) (E.desc r) (enparen p0 p)
   | If (test, p1, p2) ->
      sprintf "if %s then %s else %s"

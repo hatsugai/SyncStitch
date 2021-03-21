@@ -126,14 +126,21 @@ and process_par l =
   let p = process_intchoice l in
   let t = get_token l in
   match t with
-    LBRA_PAR ->
+    LBRA_PAR ->                 (* [|X|] *)
      let x = expr l in
      ensure_token l RBRA_PAR;
      let q = process_par l in
      S.Par (x, [p; q])
-  | INTERLEAVE ->
+  | INTERLEAVE ->               (* ||| *)
      let q = process_par l in
      S.Par (S.Set [], [p; q])
+  | LBRA ->                     (* [A||B] *)
+     let a = expr l in
+     ensure_token l PARALLEL;
+     let b = expr l in
+     ensure_token l RBRA;
+     let q = process_par l in
+     S.AlphaPar [(a, p); (b, q)]
   | _ ->
      pushback l t; p
 
@@ -545,6 +552,16 @@ and expr_prim l =
      ensure_token l AT;
      let p = process l in
      S.XPar (x, r, ref None, S.Set [], p)
+  | PARALLEL ->                 (* || x : I @ [A] P *)
+     let x = get_id l in
+     ensure_token l COLON;
+     let r = expr l in
+     ensure_token l AT;
+     ensure_token l LBRA;
+     let a = expr l in
+     ensure_token l RBRA;
+     let p = process l in
+     S.XAlphaPar (x, r, ref None, a, p)
   | IF -> expr_if l
   | LET -> expr_let l
   | CASE -> expr_case l

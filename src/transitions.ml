@@ -7,6 +7,9 @@ open EventCol
 
 exception TransException of string
 
+let evset_diff_list x ys =
+  List.fold_left EventSet.diff x ys
+
 let conv_evset s =
   match s with
     V.Set xs ->
@@ -47,13 +50,14 @@ let normalize mdb c =
 
   let rec norm c =
     match c with
-      C.Omega            -> c
-    | C.Process (env, p) -> norm_proc env p
-    | C.Alt cs           -> C.Alt (norm_cs cs)
-    | C.Seq (c, ps)      -> C.Seq (norm c, ps)
-    | C.Par (x, cs)      -> C.Par (x, norm_cs cs)
-    | C.Hide (x, c')     -> C.Hide (x, norm c')
-    | C.Rename (m, c')   -> C.Rename (m, norm c')
+      C.Omega             -> c
+    | C.Process (env, p)  -> norm_proc env p
+    | C.Alt cs            -> C.Alt (norm_cs cs)
+    | C.Seq (c, ps)       -> C.Seq (norm c, ps)
+    | C.Par (x, cs)       -> C.Par (x, norm_cs cs)
+    | C.AlphaPar (xs, cs) -> C.AlphaPar (xs, List.map norm cs)
+    | C.Hide (x, c')      -> C.Hide (x, norm c')
+    | C.Rename (m, c')    -> C.Rename (m, norm c')
 
   and norm_cs cs =
     List.map norm cs
@@ -85,12 +89,14 @@ let normalize mdb c =
     | P.Amb ps                     -> C.Process (norm_env env p, p)
     | P.Seq ps                     -> norm_seq env ps
     | P.Par (x, ps)                -> norm_par env x ps
+    | P.AlphaPar xs                -> norm_apar env xs
     | P.Hide (x, p)                -> norm_hide env x p
     | P.Rename (m, p)              -> norm_rename env m p
     | P.XAlt (x, r, _, p)          -> norm_xalt env x r p
     | P.XAmb (x, r, _, p')         -> C.Process (norm_env env p, p)
     | P.XSeq (x, r, _, p)          -> norm_xseq env x r p
     | P.XPar (x, r, _, a, p)       -> norm_xpar env x r a p
+    | P.XAlphaPar (x, r, _, a, p)  -> norm_xapar env x r a p
     | P.If (test, p1, p2)          -> norm_if env test p1 p2
     | P.Let (bs, p)                -> norm_let env bs p
     | P.Case (e, n, bs)            -> norm_case env e bs
@@ -117,6 +123,39 @@ let normalize mdb c =
     let v = Eval.eval mdb env x in
     let s = conv_evset v in
     C.Par (s, norm_ps env ps)
+
+  and norm_apar env alpha_process_list =
+    let alpha_config_list =
+      List.map
+        (fun (a, p) ->
+          let v = Eval.eval mdb env a in
+          let a = conv_evset v in
+          let c = norm_proc env p in
+          (a, c))
+        alpha_process_list
+    in
+    make_apar_from_alpha_config_list alpha_config_list
+
+  and make_apar_from_alpha_config_list alpha_config_list =
+    (*
+      xs: (alpha, config) list
+      ys: (alpha, nosync) list (rev)
+      rs: config list (rev)
+      inv: rev vs @ us = us0  (alphabet list)
+     *)
+    let rec loop xs cs us acs =
+      match acs with
+        [] -> C.AlphaPar (List.rev xs, List.rev cs)
+      | (a, c)::acs' ->
+         (* b = u - (vs Un us') *)
+         let b =
+           List.fold_left
+             (fun a (a', _) -> EventSet.diff a a')
+             (List.fold_left EventSet.diff a us) acs'
+         in
+         loop ((a, b)::xs) (c::cs) (a::us) acs'
+    in
+    loop [] [] [] alpha_config_list
 
   and norm_hide env x p =
     let v = Eval.eval mdb env x in
@@ -180,6 +219,26 @@ let normalize mdb c =
            C.Par (s, cs))
     | _ -> error "norm_xop_set"
 
+  and norm_xapar env x r a p =
+    let v = Eval.eval mdb env r in
+    match v with
+      V.Set vs ->
+       (match vs with
+          [] -> error "range is empty in xapar"
+        | _ ->
+           let alpha_config_list =
+             List.map
+               (fun v ->
+                 let envx = Eval.extend_env1 env x v in
+                 let v = Eval.eval mdb envx a in (* eval in x-env *)
+                 let a = conv_evset v in
+                 let c = norm (C.Process (envx, p)) in (* normalized in x-env *)
+                 (a, c)) (* (alpha, config) *)
+               vs
+           in
+           make_apar_from_alpha_config_list alpha_config_list)
+    | _ -> error "norm_xop_set"
+
   and norm_if env test p1 p2 =
     match Eval.eval mdb env test with
       Bool true  -> norm (C.Process (env, p1))
@@ -236,13 +295,14 @@ let rec trans mdb c =
 
   let rec trans c =
     match c with
-      C.Omega            -> []
-    | C.Process (env, p) -> trans_process env p
-    | C.Alt cs           -> trans_alt_config cs
-    | C.Seq (c, ps)      -> trans_seq_config c ps
-    | C.Par (x, cs)      -> trans_par_config x cs
-    | C.Hide (x, c)      -> trans_hide_config x c
-    | C.Rename (m, c)    -> trans_rename_config m c
+      C.Omega             -> []
+    | C.Process (env, p)  -> trans_process env p
+    | C.Alt cs            -> trans_alt_config cs
+    | C.Seq (c, ps)       -> trans_seq_config c ps
+    | C.Par (x, cs)       -> trans_par_config x cs
+    | C.AlphaPar (xs, cs) -> trans_apar_config xs cs
+    | C.Hide (x, c)       -> trans_hide_config x c
+    | C.Rename (m, c)     -> trans_rename_config m c
 
   and trans_process env p =
     match p with
@@ -258,12 +318,14 @@ let rec trans mdb c =
     | P.Amb ps                    -> trans_amb env ps
     | P.Seq ps                    -> raise (TransException (P.show p))
     | P.Par (x, ps)               -> raise (TransException (P.show p))
+    | P.AlphaPar xs               -> raise (TransException (P.show p))
     | P.Hide (x, p)               -> raise (TransException (P.show p))
     | P.Rename (m, p)             -> raise (TransException (P.show p))
     | P.XAlt (x, r, _, p)         -> raise (TransException (P.show p))
     | P.XAmb (x, r, _, p)         -> trans_xamb env x r p
     | P.XSeq (x, r, _, p)         -> raise (TransException (P.show p))
     | P.XPar (x, r, _, a, p)      -> raise (TransException (P.show p))
+    | P.XAlphaPar (x, r, _, a, p) -> raise (TransException (P.show p))
     | P.If (test, p1, p2)         -> raise (TransException (P.show p))
     | P.Let (bs, p)               -> raise (TransException (P.show p))
     | P.Case (e, n, bs)           -> raise (TransException (P.show p))
@@ -410,6 +472,87 @@ let rec trans mdb c =
                       loop ((u, t)::acc) tr')
            in loop acc (trans c)
       in scan [] 0 [] cs
+
+  and trans_apar_config xs cs =
+    if List.for_all (fun c -> c = C.Omega) cs then
+      [(Tick, C.Omega)]
+    else
+      trans_apar_config2 xs cs
+
+  and trans_apar_config2 xs0 cs0 =
+    let m = List.length cs0 in
+    assert (m = List.length xs0);
+    let ht = Hashtbl.create 0 in
+
+    let makev e =
+      let v = Array.make m [] in
+      let rec loop k xs cs =
+        match xs, cs with
+        | (a, b)::xs', c::cs' ->
+           (if EventSet.mem e a then
+              v.(k) <- []       (* target states to be added *)
+            else
+              v.(k) <- [c]);    (* stay, not participate in sync *)
+           loop (k+1) xs' cs'
+        | _, _ -> v
+      in
+      loop 0 xs0 cs0
+    in
+
+    let reg k e c =
+      match Hashtbl.find_opt ht e with
+      | Some v -> v.(k) <- c::v.(k)
+      | None ->
+         let v = makev e in
+         v.(k) <- [c];
+         Hashtbl.replace ht e v
+    in
+
+    let sync acc =
+      Hashtbl.fold
+        (fun e v acc ->
+          let css = Utils.cartesian_product (Array.to_list v) in
+          List.fold_left
+            (fun acc cs -> (e, C.AlphaPar (xs0, cs))::acc)
+            acc css)
+        ht acc
+    in
+
+    let rec scan acc k rs xs cs =
+      match xs, cs with
+      | (a, b)::xs', c::cs' ->
+         let rec loop acc tr =
+           match tr with
+             [] -> scan acc (k+1) (c::rs) xs' cs'
+           | (u, c')::tr' ->
+              (match u with
+               | Tau | HiddenEvent _ ->
+                  Db.tr "apar tau";
+                  let t = C.AlphaPar (xs0, List.rev_append rs (c'::cs')) in
+                  loop ((u, t)::acc) tr'
+               | Tick ->
+                  Db.tr "apar tick";
+                  assert (c' = C.Omega);
+                  let t = C.AlphaPar (xs0, List.rev_append rs (c'::cs')) in
+                  loop ((Tau, t)::acc) tr'
+               | Event (n, vs) ->
+                  if EventSet.mem u b then (* no sync *)
+                    let t = C.AlphaPar (xs0, List.rev_append rs (c'::cs')) in
+                    Db.tr_s "apar no sync:" (Event.show u);
+                    loop ((u, t)::acc) tr'
+                  else if EventSet.mem u a then (* sync *)
+                    begin
+                      Db.tr_s "apar sync:" (Event.show u);
+                      reg k u c'; loop acc tr'
+                    end
+                  else
+                    begin
+                      Db.tr_s "apar inhibited:" (Event.show u);
+                      loop acc tr'
+                    end)
+         in loop acc (trans c)
+      | _, _ -> sync acc
+    in scan [] 0 [] xs0 cs0
 
   and trans_hide_config x c =
     List.fold_left
