@@ -11,7 +11,7 @@ let font_name = ref "monospace"
 let font_size = ref 10.0
 
 let usage_msg = "syncstitch [option...] filename\n"
-let version = "SyncStitch 4.2"
+let version = "SyncStitch 4.3"
 
 let option_spec =
   [
