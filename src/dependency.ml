@@ -37,18 +37,18 @@ let rec fv ns acc expr =
   | If (x, y, z) ->
      fv ns (fv ns (fv ns acc x) y) z
   | Let (bs, e) ->
-     let ns' =
-       List.fold_left
-         (fun ns' (xs, e) ->
-           List.fold_left
-             (fun ns' (x, rt) -> IdSet.remove x ns')
-             ns xs)
-         ns bs
-     in
      let acc =
        List.fold_left
          (fun acc (vs, e) -> fv ns acc e)
          acc bs
+     in
+     let ns' =
+       List.fold_left
+         (fun ns (xs, e) ->
+           List.fold_left
+             (fun ns (x, rt) -> IdSet.remove x ns)
+             ns xs)
+         ns bs
      in
      fv ns' acc e
   | Case (e, n, bs) ->
