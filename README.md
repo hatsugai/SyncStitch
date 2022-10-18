@@ -2,7 +2,7 @@
 
 A Refinement Checker based on CSP
 
-Copyright (C) 2020-2021 Hisabumi Hatsugai
+Copyright (C) 2020-2022 Hisabumi Hatsugai
 
 ## Documents
 
